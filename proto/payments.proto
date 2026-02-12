@@ -1,0 +1,141 @@
+syntax = "proto3";
+
+package payments;
+
+option go_package = "github.com/vibast-solutions/ms-go-payments/app/types;types";
+
+service PaymentsService {
+  rpc Health(HealthRequest) returns (HealthResponse);
+  rpc CreatePayment(CreatePaymentRequest) returns (PaymentEnvelopeResponse);
+  rpc GetPayment(GetPaymentRequest) returns (PaymentEnvelopeResponse);
+  rpc ListPayments(ListPaymentsRequest) returns (ListPaymentsResponse);
+  rpc CancelPayment(CancelPaymentRequest) returns (PaymentEnvelopeResponse);
+  rpc HandleProviderCallback(HandleProviderCallbackRequest) returns (MessageResponse);
+}
+
+enum PaymentStatus {
+  PAYMENT_STATUS_UNSPECIFIED = 0;
+  PAYMENT_STATUS_CREATED = 1;
+  PAYMENT_STATUS_PENDING = 2;
+  PAYMENT_STATUS_PROCESSING = 3;
+  PAYMENT_STATUS_PAID = 10;
+  PAYMENT_STATUS_FAILED = 20;
+  PAYMENT_STATUS_CANCELED = 30;
+  PAYMENT_STATUS_EXPIRED = 40;
+}
+
+enum PaymentMethod {
+  PAYMENT_METHOD_UNSPECIFIED = 0;
+  PAYMENT_METHOD_HOSTED_CARD = 1;
+  PAYMENT_METHOD_PAYMENT_LINK = 2;
+}
+
+enum PaymentType {
+  PAYMENT_TYPE_UNSPECIFIED = 0;
+  PAYMENT_TYPE_ONE_TIME = 1;
+  PAYMENT_TYPE_RECURRING = 2;
+}
+
+enum ProviderType {
+  PROVIDER_TYPE_UNSPECIFIED = 0;
+  PROVIDER_TYPE_STRIPE = 1;
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  string status = 1;
+}
+
+message Payment {
+  uint64 id = 1;
+  string request_id = 2;
+  string caller_service = 3;
+  string resource_type = 4;
+  string resource_id = 5;
+  string customer_ref = 6;
+  int64 amount_cents = 7;
+  string currency = 8;
+  PaymentStatus status = 9;
+  PaymentMethod payment_method = 10;
+  PaymentType payment_type = 11;
+  ProviderType provider = 12;
+  string recurring_interval = 13;
+  int32 recurring_interval_count = 14;
+  string provider_payment_id = 15;
+  string provider_subscription_id = 16;
+  string checkout_url = 17;
+  string provider_callback_hash = 18;
+  string provider_callback_url = 19;
+  string status_callback_url = 20;
+  int64 refunded_cents = 21;
+  int64 refundable_cents = 22;
+  map<string, string> metadata = 23;
+  string created_at = 24;
+  string updated_at = 25;
+}
+
+message CreatePaymentRequest {
+  string request_id = 1;
+  string caller_service = 2;
+  string resource_type = 3;
+  string resource_id = 4;
+  string customer_ref = 5;
+  int64 amount_cents = 6;
+  string currency = 7;
+  PaymentMethod payment_method = 8;
+  PaymentType payment_type = 9;
+  ProviderType provider = 10;
+  string recurring_interval = 11;
+  int32 recurring_interval_count = 12;
+  string status_callback_url = 13;
+  string success_url = 14;
+  string cancel_url = 15;
+  map<string, string> metadata = 16;
+}
+
+message GetPaymentRequest {
+  uint64 id = 1;
+}
+
+message ListPaymentsRequest {
+  string request_id = 1;
+  string caller_service = 2;
+  string resource_type = 3;
+  string resource_id = 4;
+  bool has_status = 5;
+  PaymentStatus status = 6;
+  ProviderType provider = 7;
+  int32 limit = 8;
+  int32 offset = 9;
+}
+
+message CancelPaymentRequest {
+  uint64 id = 1;
+  string reason = 2;
+}
+
+message HandleProviderCallbackRequest {
+  string request_id = 1;
+  string provider = 2;
+  string callback_hash = 3;
+  string signature = 4;
+  string payload = 5;
+}
+
+message PaymentEnvelopeResponse {
+  Payment payment = 1;
+}
+
+message ListPaymentsResponse {
+  repeated Payment payments = 1;
+}
+
+message MessageResponse {
+  string message = 1;
+  Payment payment = 2;
+}
+
+message ErrorResponse {
+  string error = 1;
+}

@@ -1,0 +1,37 @@
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: payments
+    ports:
+      - "43306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 2s
+      timeout: 2s
+      retries: 20
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+  payments:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    environment:
+      HTTP_PORT: 8080
+      GRPC_PORT: 9090
+      MYSQL_DSN: root:root@tcp(mysql:3306)/payments?parseTime=true
+      LOG_LEVEL: info
+      APP_API_KEY: payments-app-api-key
+      AUTH_SERVICE_GRPC_ADDR: host.docker.internal:38084
+      APP_SERVICE_NAME: payments-service
+      PAYMENTS_PROVIDER_CALLBACK_BASE_URL: http://localhost:18081/webhooks/providers/stripe
+    ports:
+      - "48080:8080"
+      - "49090:9090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      mysql:
+        condition: service_healthy
