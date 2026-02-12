@@ -47,10 +47,10 @@ make build-all
 ./build/payments-service callbacks dispatch
 ./build/payments-service expire pending
 
-# Worker mode (per command)
-./build/payments-service reconcile --worker
-./build/payments-service callbacks dispatch --worker
-./build/payments-service expire pending --worker
+# Worker mode (global flag)
+./build/payments-service --worker reconcile
+./build/payments-service --worker callbacks dispatch
+./build/payments-service --worker expire pending
 ```
 
 Or with `go run`:
@@ -60,9 +60,9 @@ go run main.go serve
 go run main.go reconcile
 go run main.go callbacks dispatch
 go run main.go expire pending
-go run main.go reconcile --worker
-go run main.go callbacks dispatch --worker
-go run main.go expire pending --worker
+go run main.go --worker reconcile
+go run main.go --worker callbacks dispatch
+go run main.go --worker expire pending
 ```
 
 ## CLI Commands
@@ -71,14 +71,14 @@ go run main.go expire pending --worker
   - Starts HTTP and gRPC servers.
 - `reconcile`
   - Reconciles stale `pending/processing` provider-backed payments against provider status.
-  - `--worker` repeats using `PAYMENTS_RECONCILE_INTERVAL_MINUTES`.
+  - `--worker reconcile` repeats using `PAYMENTS_RECONCILE_INTERVAL_MINUTES`.
 - `callbacks dispatch`
   - Dispatches terminal payment status payloads to caller-defined `status_callback_url`.
   - Retries and marks delivery failed when retry budget is exhausted.
-  - `--worker` repeats using `PAYMENTS_CALLBACK_DISPATCH_INTERVAL_MINUTES`.
+  - `--worker callbacks dispatch` repeats using `PAYMENTS_CALLBACK_DISPATCH_INTERVAL_MINUTES`.
 - `expire pending`
   - Marks long-running `pending/processing` payments as `expired`.
-  - `--worker` repeats using `PAYMENTS_EXPIRE_PENDING_INTERVAL_MINUTES`.
+  - `--worker expire pending` repeats using `PAYMENTS_EXPIRE_PENDING_INTERVAL_MINUTES`.
 - `version`
   - Prints version/build metadata.
 

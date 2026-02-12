@@ -14,9 +14,7 @@ import (
 )
 
 var (
-	reconcileWorker         bool
-	callbackDispatchWorker  bool
-	expirePendingWorker     bool
+	workerMode bool
 )
 
 var reconcileCmd = &cobra.Command{
@@ -25,7 +23,6 @@ var reconcileCmd = &cobra.Command{
 	Run: func(_ *cobra.Command, _ []string) {
 		runCommand(
 			"reconcile",
-			reconcileWorker,
 			func(cfg *config.Config) time.Duration { return cfg.Jobs.ReconcileInterval },
 			func(s *service.PaymentService, ctx context.Context) error {
 				return s.RunReconcileBatch(ctx)
@@ -45,7 +42,6 @@ var callbacksDispatchCmd = &cobra.Command{
 	Run: func(_ *cobra.Command, _ []string) {
 		runCommand(
 			"callbacks_dispatch",
-			callbackDispatchWorker,
 			func(cfg *config.Config) time.Duration { return cfg.Jobs.CallbackDispatchInterval },
 			func(s *service.PaymentService, ctx context.Context) error {
 				return s.RunDispatchCallbacksBatch(ctx)
@@ -65,7 +61,6 @@ var expirePendingCmd = &cobra.Command{
 	Run: func(_ *cobra.Command, _ []string) {
 		runCommand(
 			"expire_pending",
-			expirePendingWorker,
 			func(cfg *config.Config) time.Duration { return cfg.Jobs.ExpirePendingInterval },
 			func(s *service.PaymentService, ctx context.Context) error {
 				return s.RunExpirePendingBatch(ctx)
@@ -81,21 +76,18 @@ func init() {
 	callbacksCmd.AddCommand(callbacksDispatchCmd)
 	expireCmd.AddCommand(expirePendingCmd)
 
-	reconcileCmd.Flags().BoolVar(&reconcileWorker, "worker", false, "Run continuously using configured interval")
-	callbacksDispatchCmd.Flags().BoolVar(&callbackDispatchWorker, "worker", false, "Run continuously using configured interval")
-	expirePendingCmd.Flags().BoolVar(&expirePendingWorker, "worker", false, "Run continuously using configured interval")
+	rootCmd.PersistentFlags().BoolVar(&workerMode, "worker", false, "Run continuously using configured interval")
 }
 
 func runCommand(
 	name string,
-	worker bool,
 	intervalResolver func(cfg *config.Config) time.Duration,
 	fn func(s *service.PaymentService, ctx context.Context) error,
 ) {
 	cfg, paymentService, cleanup := mustCreatePaymentService()
 	defer cleanup()
 
-	if worker {
+	if workerMode {
 		runWorker(name, intervalResolver(cfg), paymentService, fn)
 		return
 	}

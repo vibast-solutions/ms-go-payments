@@ -79,9 +79,9 @@ payments/
 ## Commands
 - `payments serve`
 - `payments reconcile`
-- `payments reconcile --worker`
+- `payments --worker reconcile`
 - `payments callbacks dispatch`
-- `payments callbacks dispatch --worker`
+- `payments --worker callbacks dispatch`
 - `payments expire pending`
-- `payments expire pending --worker`
+- `payments --worker expire pending`
 - `payments version`

@@ -37,9 +37,9 @@ Start from `.env.example` and provide real values for:
 Run each worker independently so schedules can differ:
 
 ```bash
-./build/payments-service reconcile --worker
-./build/payments-service callbacks dispatch --worker
-./build/payments-service expire pending --worker
+./build/payments-service --worker reconcile
+./build/payments-service --worker callbacks dispatch
+./build/payments-service --worker expire pending
 ```
 
 ## Health
